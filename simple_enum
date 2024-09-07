@@ -1,13 +1,18 @@
-!pip install requests
-!pip install dnspython
-!pip install impacket
+# if using Jupyter Notebooks or CoLab, use these magic commands instead of subprocess.check_call
+# !pip install requests
+# !pip install dnspython
+# !pip install impacket
+
+import subprocess
+subprocess.check_call (['pip', 'install', 'requests'])
+subprocess.check_call (['pip', 'install', 'dnspython'])
+subprocess.check_call (['pip', 'install', 'impacket'])
 
 import dns.resolver
 import requests
 import socket
 import smtplib
 import ssl
-import subprocess
 
 # Scan open ports and trigger respective checks
 def port_scanner(target_ip):
@@ -31,7 +36,7 @@ def port_scanner(target_ip):
     # Scan the specified ports
     for port, description in ports.items():
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(1)
+        sock.settimeout(15)
         result = sock.connect_ex((target_ip, port))
         if result == 0:
             open_ports.append((port, description))
@@ -62,7 +67,7 @@ def port_scanner(target_ip):
 # Check SMTP service
 def check_smtp(target_ip):
     try:
-        server = smtplib.SMTP(target_ip, 25, timeout=3)
+        server = smtplib.SMTP(target_ip, 25, timeout=10)
         server.ehlo()
         print(f"SMTP service is responsive on {target_ip}.")
         server.quit()
@@ -84,14 +89,14 @@ def check_dns(target_ip):
 # Check HTTP service
 def check_http(target_ip):
     try:
-        response = requests.get(f"http://{target_ip}", timeout=3)
+        response = requests.get(f"http://{target_ip}", timeout=5)
         print(f"HTTP service is responsive on {target_ip}. Status code: {response.status_code}")
     except Exception as e:
         print(f"Error connecting to HTTP on {target_ip}: {e}")
 
 def check_https(target_ip):
     try:
-      response = requests.get(f"https://{target_ip}", timeout=3)
+      response = requests.get(f"https://{target_ip}", timeout=5)
       print(f"HTTPS service is responsive on {target_ip}. Status code: {response.status_code}")
     except Exception as e:
       print(f"Error connecting to HTTPS on {target_ip}: {e}")
@@ -100,7 +105,7 @@ def check_https_certificate(target_ip):
     try:
       context = ssl.create_default_context()
       conn = context.wrap_socket(socket.socket(socket.AF_INET), server_hostname=target_ip)
-      conn.settimeout(3)
+      conn.settimeout(5)
       conn.connect((target_ip, 443))
 
       cert = conn.getpeercert()
